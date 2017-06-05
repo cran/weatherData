@@ -1,4 +1,3 @@
-require(plyr)
 #' @title Check if WeatherUnderground has Data for given station and date
 #' 
 #' @description Use this function to check if data is available for station and date
@@ -203,6 +202,7 @@ checkSummarizedDataAvailability<- function (station_id,
 #'   found by visiting the weatherUnderground URL, and counting from 1. Note that if \code{opt_custom_columns} is TRUE, 
 #'   then \code{custom_columns} must be specified.
 #' @import plyr
+#' @import curl
 #' @references For a list of valid Weather Stations, try this format
 #'  \url{http://www.wunderground.com/weatherstation/ListStations.asp?selectedCountry=United+States}
 #'  and replace with your country of interest
@@ -212,11 +212,11 @@ checkSummarizedDataAvailability<- function (station_id,
 #' }
 #'@examples
 #'\dontrun{
-#' dat <- getWeatherForDate("PHNL", "2013-08-10", 2013-08-31")
-#' d3<- getWeatherForDate("CWWF", start_date="2014-03-01", 
-#'                         end_date = "2014-03-03", 
-#'                         opt_detailed = TRUE, 
-#'                         opt_all_columns = TRUE)
+#'dat <- getWeatherForDate("PHNL", "2013-08-10", 2013-08-31")
+#'d3<- getWeatherForDate("CWWF", start_date="2014-03-01", 
+#'                       end_date = "2014-03-03", 
+#'                       opt_detailed = TRUE, 
+#'                       opt_all_columns = TRUE)
 #'}
 #' @export
 getWeatherForDate <- function(station_id, 
@@ -285,8 +285,8 @@ getWeatherForDate <- function(station_id,
                                           custom_columns,
                                           opt_compress_output=FALSE,
                                           opt_verbose,
-                                          opt_warnings=TRUE) 
-        
+                                          opt_warnings=TRUE)
+
       message(paste(station_id, i, date.range[i], ": Fetching",
                     nrow(single_day_df), "Rows" , "with",
                     ncol(single_day_df), "Column(s)" )
@@ -328,20 +328,20 @@ getWeatherForDate <- function(station_id,
     #Take care of filename and Row Names for min/max
     prepend <- NULL
     if(daily_max & daily_min) {#both
-      names(d) <- c("TimeMin", "MinTemp","TimeMax", "MaxTemp")
+      names(df) <- c("TimeMin", "MinTemp","TimeMax", "MaxTemp")
       prepend <- "MinMax_"
     } else if(daily_min){
-      names(d) <- c("TimeMin", "MinTemp")
+      names(df) <- c("TimeMin", "MinTemp")
       prepend <- "Min_"
     } else if(daily_max){
-      names(d) <- c("TimeMax", "MaxTemp")
+      names(df) <- c("TimeMax", "MaxTemp")
       prepend <- "Max_"
     }
     
     outFileName <- paste0(prepend, station_id,"_",start_date, coda)  
     outFileName <- paste(outFileName, "csv","gz", sep=".")
     
-    write.csv(d, file=gzfile(outFileName), row.names=FALSE)
+    write.csv(df, file=gzfile(outFileName), row.names=FALSE)
     message(paste("wrote:", outFileName, "to", getwd()))    
   }  
   
@@ -349,13 +349,14 @@ getWeatherForDate <- function(station_id,
   return(df)
 }
 
-#checkSummarizedDataAvailability("KBUF", "2012-12-12", end_date=NULL)
+
+
 
 #'  Get weather data for one full year
 #'  
 #' @description Function will return a data frame with all the records
 #'   for a given station_id and year. If the current year is supplied,
-#'   it will returns records until the current Sys.Date() ("today")
+#'   it will return records until the current Sys.Date() ("today")
 #'   
 #' @details Note that this function is a light wrapper for getWeatherForDate
 #'    with the two end dates being Jan-01 and Dec-31 of the given year.
@@ -506,11 +507,11 @@ getDailyMinMaxTemp <- function(station_id, start_date,
 #' \item Date and Time stamp (for when that day's maximum temperature was recorded)
 #' \item Maximum Temperature for the station in Farenheit (or Celcius)
 #' }
-#'@examples
+#' @examples
 #'\dontrun{
-#' dat <- getDailyMinMaxTemp("KIAH", "2013-08-10", 2013-08-31", daily_max=TRUE)
-#' dat <- getDailyMinMaxTemp("KBIL", "2013-08-10", daily_max=T)
-#' dat <- getDailyMinMaxTemp("EGLL", "2013-08-10", daily_max=T, daily_min=TRUE)
+#'dat <- getDailyMinMaxTemp("KIAH", "2013-08-10", 2013-08-31", daily_max=TRUE)
+#'dat <- getDailyMinMaxTemp("KBIL", "2013-08-10", daily_max=T)
+#'dat <- getDailyMinMaxTemp("EGLL", "2013-08-10", daily_max=T, daily_min=TRUE)
 #'}
 #' at export 
   
@@ -551,42 +552,42 @@ getTemperatureForDate <- function(station_id,
                               opt_write_to_file = FALSE
 ) {  
 
-# Not exporting this function for now. Functionality exists elsewhere.  
-#'  Getting Temperature data for a single date (or a range of dates)
+  # Not exporting this function for now. Functionality exists elsewhere.  
+  #'  Getting Temperature data for a single date (or a range of dates)
   #'   
   #' @description This function will return a (fairly large) data frame. If you are going 
-     #'  to be using this data for future analysis, you can store the results in a CSV file
-     #'   by setting \code{opt_write_to_file} to be TRUE
-     #' @details For each day in the date range, this function fetches Temperature Data. It will fetch
-     #' all the available values, which is typically multiple rows for each day, with a time stamp.
-     #'  This function is a light wrapper for  \code{getWeatherForDate}.
-     #' 
-     #' @param station_id is a valid station code or a valid Weather Station ID
-     #'  (example: "BUF", "ORD", "VABB" for Mumbai).
-     #'  Valid Weather Station "id" values: "KFLMIAMI75" or "IMOSCOWO2" You can look up
-     #'   weather station IDs at wunderground.com
-     #' @param start_date is a valid string representing a date in the past (YYYY-MM-DD, all numeric)
-     #' @param end_date (optional) If an interval is to be specified, end_date 
-     #'  is a a valid string representing a date in the past (YYYY-MM-DD, all numeric) 
-     #'  and greater than start_date  
-     #' @param station_type = "airportCode" (4-letter airport code) or "ID" (Wx call Sign)
-     #' @param daily_min A boolean indicating if only the Minimum Temperatures are desired
-     #' @param daily_max A boolean indicating if only the Maximum Temperatures are desired
-     #' @param opt_write_to_file If TRUE, the resulting dataframe will be stored in a CSV file. 
-     #'  Default is FALSE
-     #' @seealso getWeatherForDate, getDetailedWeather
-     #' @references For a list of valid Weather Stations, try this format
-     #'  \url{http://www.wunderground.com/weatherstation/ListStations.asp?selectedCountry=United+States}
-     #'  and replace with your country of interest
-     #' @return A data frame with each row containing: \itemize{
-     #' \item Date and Time stamp (for each date specified)
-     #' \item Temperature values
-     #' }
-     #'@examples
-     #'\dontrun{
-     #' dat <- getTemperatureForDate("KPHX", "2013-08-10", 2013-08-13")
-     #'}
-     #' at export
+  #'  to be using this data for future analysis, you can store the results in a CSV file
+  #'   by setting \code{opt_write_to_file} to be TRUE
+  #' @details For each day in the date range, this function fetches Temperature Data. It will fetch
+  #' all the available values, which is typically multiple rows for each day, with a time stamp.
+  #'  This function is a light wrapper for  \code{getWeatherForDate}.
+  #' 
+  #' @param station_id is a valid station code or a valid Weather Station ID
+  #'  (example: "BUF", "ORD", "VABB" for Mumbai).
+  #'  Valid Weather Station "id" values: "KFLMIAMI75" or "IMOSCOWO2" You can look up
+  #'   weather station IDs at wunderground.com
+  #' @param start_date is a valid string representing a date in the past (YYYY-MM-DD, all numeric)
+  #' @param end_date (optional) If an interval is to be specified, end_date 
+  #'  is a a valid string representing a date in the past (YYYY-MM-DD, all numeric) 
+  #'  and greater than start_date  
+  #' @param station_type = "airportCode" (4-letter airport code) or "ID" (Wx call Sign)
+  #' @param daily_min A boolean indicating if only the Minimum Temperatures are desired
+  #' @param daily_max A boolean indicating if only the Maximum Temperatures are desired
+  #' @param opt_write_to_file If TRUE, the resulting dataframe will be stored in a CSV file. 
+  #'  Default is FALSE
+  #' @seealso getWeatherForDate, getDetailedWeather
+  #' @references For a list of valid Weather Stations, try this format
+  #'  \url{http://www.wunderground.com/weatherstation/ListStations.asp?selectedCountry=United+States}
+  #'  and replace with your country of interest
+  #' @return A data frame with each row containing: \itemize{
+  #' \item Date and Time stamp (for each date specified)
+  #' \item Temperature values
+  #' }
+  #'@examples
+  #'\dontrun{
+  #' dat <- getTemperatureForDate("KPHX", "2013-08-10", 2013-08-13")
+  #'}
+  #' at export
   
   getWeatherForDate(station_id,start_date,end_date,station_type,
                     opt_temperature_columns=T, #this flag is preset.
@@ -595,3 +596,88 @@ getTemperatureForDate <- function(station_id,
                     opt_write_to_file)
   
 }
+
+
+
+#' @title For Multiple Years, fetch the weather data for a station
+#' 
+#' @description Function will return a data frame with all the records
+#'   for a given station_id for all the years requested. If the current year is supplied,
+#'   it will return records until the current Sys.Date() ("today").
+#'   This function will return a (fairly large) data frame. If you are going 
+#'  to be using this data for future analysis, you can store the results in a CSV file
+#'   by setting \code{opt_write_to_file} to be TRUE
+#'  
+#' @details Note that this function is a light wrapper for getWeatherForYear
+#'   
+#' @param station_id is a valid Weather Station ID
+#'  (example: "BUF", "ORD", "VABB" for Mumbai).
+#'  Valid Weather Station "id" values: "KFLMIAMI75" or "IMOSCOWO2" You can look these up
+#'   at wunderground.com. You can get station_id's for a given location
+#'   by calling \code{getStationCode()}
+#' @param start_year is a valid year in the past (numeric, YYYY format)
+#' @param end_year is a valid year in the past (numeric, YYYY format)
+#' @param station_type = "airportCode" (3 or 4 letter airport code) or "ID" (Wx call Sign)
+#' @param opt_detailed Boolen flag to indicate if detailed records for the station are desired.
+#' (default FALSE). By default only one records per date is returned.
+#' @param opt_write_to_file If TRUE, the resulting dataframe will be stored in a CSV file. 
+#'  Default is FALSE
+#' @references For a list of valid Weather Stations, try this format
+#'  \url{http://www.wunderground.com/weatherstation/ListStations.asp?selectedCountry=United+States}
+#'  and replace with your country of interest
+#' @return A data frame with each row containing: \itemize{
+#' \item Date and Time stamp (for each date specified)
+#' \item Temperature and/or other weather columns sought
+#' }
+#'@examples
+#'\dontrun{
+#' dat <- getWeatherForMultipleYears("SFO", 2013, 2017)
+#' 
+#' # If opt_detailed is turned on, you will get a large data frame
+#' wx_SF <- getWeatherForMultipleYears("SIN", 2014, 2017, opt_detailed=TRUE)
+#'}
+#' @export
+getWeatherForMultipleYears <- function(station_id,
+                                       start_year,
+                                       end_year,
+                                       station_type="airportCode",
+                                       opt_detailed=FALSE,
+                                       opt_write_to_file=FALSE){
+  
+  
+  if(!validYear(start_year)){   #check if year is valid
+    warning("Start Year argument is invalid. Please provide a valid 4-digit 
+            year (numeric)")
+    return(NULL)
+  } 
+  
+  if(!validYear(end_year)){   #check if year is valid
+    warning("End Year argument is invalid. Please provide a valid 4-digit 
+            year (numeric)")
+    return(NULL)
+  } 
+
+  if(start_year>end_year){   #illegal time duration
+    warning("Start Year cannot be after End Year. Please make sure that \
+the end year is after start year.")
+    return(NULL)
+  } 
+
+  num_years <- end_year - start_year
+
+  multi_year <- vector("list", num_years)
+  for(year in start_year:end_year){
+    multi_year[[year]] <- getWeatherForYear(station_id,
+                      year,
+                      station_type=station_type,
+                      opt_detailed=opt_detailed,
+                      opt_write_to_file = opt_write_to_file) 
+    
+  }
+  
+  #flatted the List into a data frame
+  multi_year_df <- do.call(rbind, multi_year)
+  return(multi_year_df)
+    
+}
+

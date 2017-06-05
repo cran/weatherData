@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/Ram-N/weatherData.png?branch=master)](https://travis-ci.org/Ram-N/weatherData)
 
-weatherData is a library of functions that will fetch weather data (Temperature, Pressure, Humidity, Wind Speed etc.) from the Web for you as clean data frame.
+weatherData is a library of functions that will fetch weather data (Temperature, Pressure, Humidity, Wind Speed etc.) from the Web for you as a clean data frame.
 
 If you want to perform weather Analysis, but don't wish to be bothered with scraping the data yourself, you can consider using `weatherData`.
 
@@ -9,9 +9,6 @@ If you want to perform weather Analysis, but don't wish to be bothered with scra
 The main page for weatherData (with explanations and Examples) can be found
 at [http://ram-n.github.io/weatherData/](http://ram-n.github.io/weatherData/)
 
-### Shiny App
-
-WeatherCompare is [a Shiny App](http://spark.rstudio.com/ram/WeatherCompare/) that uses the data brought over by weatherData and then summarized in various ways
 
 # Install 
 
@@ -20,7 +17,7 @@ To install the development version of weatherData from github, use the **devtool
 ```r
 install.packages("devtools")
 library("devtools")
-install_github("weatherData", "Ram-N")
+install_github("Ram-N/weatherData")
 ```
 
 Load the library
@@ -28,9 +25,7 @@ Load the library
 library(weatherData)
 ```
 
-
-Windows users must also first install
-[Rtools](http://cran.rstudio.com/bin/windows/Rtools/).
+Windows users may also need to first install *Rtools* from CRAN. (Look in bin/windows)
 
 ## Suggestions
 
@@ -80,7 +75,4 @@ to other functions such as `getWeatherForDate()`
 
 More examples (with explanations) can be found
 at [http://ram-n.github.io/weatherData/](http://ram-n.github.io/weatherData/)
-
-
-
 

@@ -1,5 +1,3 @@
-require(plyr)
-
 #' @title Gets weather data for a single date (All records)
 #' 
 #' @description Given a valid station and a single date this function
@@ -52,8 +50,7 @@ getDetailedWeather <- function(station_id,
                                opt_compress_output=FALSE,
                                opt_verbose=FALSE,
                                opt_warnings=TRUE) {
-  
-  
+
   #validate Inputs
   if(IsDateInvalid(date, opt_warnings)) {
     if (opt_warnings)
@@ -65,13 +62,10 @@ getDetailedWeather <- function(station_id,
     warning("Station Type is Invalid:", station_type)
     return(NULL)
   }
-    
-  #Create the WxUnderground URL.
- final_url <- createWU_SingleDateURL(station_id, date, 
-                                    station_type, 
-                                    opt_verbose)
-  
-    
+
+  # Create the WxUnderground URL
+  final_url <- createWU_SingleDateURL(station_id, date, station_type, opt_verbose)
+
   #------------------
   # Now read the data from the URL
   #-------------------  
@@ -79,7 +73,7 @@ getDetailedWeather <- function(station_id,
   # contains <br> tags on every other line
   wxdata <- readUrl(final_url)
 
-# check that the results are usable
+  # check that the results are usable
   if(grepl(pattern="No daily or hourly history data", wxdata[3]) ==TRUE){
     if(opt_warnings) {
       warning(sprintf("Unable to get data from URL
@@ -98,7 +92,6 @@ getDetailedWeather <- function(station_id,
     return(NULL) #have to try again
   }
 
-  
   #Clean the data frame
   # only keep records with more than 3 rows of data
   if(length(wxdata) < 3 ) {
@@ -132,7 +125,7 @@ getDetailedWeather <- function(station_id,
 #'  are summarized into one record per day. If and \code{end_date} is specified
 #'  the function returns 1 record for each day in the date range.
 #'  
-#' @param station_id is a valid 3-letter airport code or a valid Weather Station ID
+#' @param station_id is a valid 3-letter airport code 
 #' @param start_date string representing a date in the past ("YYYY-MM-DD")
 #' @param end_date (optional) string representing a date in the past ("YYYY-MM-DD"), and later than or equal to start_date.
 #' @param station_type can be \code{airportCode} which is the default, or it
@@ -182,12 +175,12 @@ getSummarizedWeather <- function(station_id,
     stop("\nInput parameters Invalid.")
     return(NULL)
   }
-  
+
   custom_url <- createWU_Custom_URL(station_id, 
-                                    start_date, 
+                                    start_date,
                                     end_date,
-                                    station_type="airportCode",
-                                    opt_verbose=FALSE)
+                                    station_type=station_type,
+                                    opt_verbose=opt_verbose)
   if(opt_verbose){
     message(sprintf("Retrieving from: %s", custom_url))    
   }  
@@ -203,12 +196,3 @@ getSummarizedWeather <- function(station_id,
     
   return(df)
 }
-
-
-
-
-
-
-
-
-
